@@ -204,7 +204,7 @@ name = "bloomchain"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "ethbloom 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethbloom 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -570,10 +570,9 @@ dependencies = [
 
 [[package]]
 name = "ethbloom"
-version = "0.2.4"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "crunchy 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-hex 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tiny-keccak 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -3735,7 +3734,7 @@ dependencies = [
 "checksum error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bd5c82c815138e278b8dcdeffc49f27ea6ffb528403e9dea4194f2e3dd40b143"
 "checksum eth-secp256k1 0.5.6 (git+https://github.com/paritytech/rust-secp256k1)" = "<none>"
 "checksum ethabi 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0c3d62319ee0f35abf20afe8859dd2668195912614346447bb2dee9fb8da7c62"
-"checksum ethbloom 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "a532f8192add179fec204f6411ca2f9bb6d4a4d2f4cfc93938d5ee2ab8fbad14"
+"checksum ethbloom 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "80a6dc8999946570f9199e65da2b1d628e11fda9c666517d86e69200498933ba"
 "checksum fdlimit 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b1ee15a7050e5580b3712877157068ea713b245b080ff302ae2ca973cfcd9baa"
 "checksum flate2 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)" = "e6234dd4468ae5d1e2dbb06fe2b058696fdc50a339c68a393aefbf00bc81e423"
 "checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
