@@ -17,7 +17,7 @@
 //! Receipt
 
 use bigint::prelude::U256;
-use bigint::hash::H256;
+use bigint::hash::{H256, H2048};
 use util::Address;
 use heapsize::HeapSizeOf;
 use rlp::*;
@@ -38,7 +38,7 @@ pub enum TransactionOutcome {
 }
 
 /// Information describing execution of a transaction.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)] // NOTE: removed `Eq` trait from this derive
 pub struct Receipt {
 	/// The total gas used in the block following execution of the transaction.
 	pub gas_used: U256,
@@ -66,6 +66,10 @@ impl Receipt {
 	}
 }
 
+// Wrapper struct used for RLP encoding and decoding
+#[derive(Clone, RlpEncodableWrapper, RlpDecodableWrapper)]
+struct RlpBloom(H2048);
+
 impl Encodable for Receipt {
 	fn rlp_append(&self, s: &mut RlpStream) {
 		match self.outcome {
@@ -81,8 +85,9 @@ impl Encodable for Receipt {
 				s.append(status_code);
 			},
 		}
+        let rlp_bloom = RlpBloom(H2048::from(self.log_bloom.data().to_owned()));
 		s.append(&self.gas_used);
-		s.append(&self.log_bloom);
+		s.append(&rlp_bloom);
 		s.append_list(&self.logs);
 	}
 }
@@ -90,16 +95,35 @@ impl Encodable for Receipt {
 impl Decodable for Receipt {
 	fn decode(rlp: &UntrustedRlp) -> Result<Self, DecoderError> {
 		if rlp.item_count()? == 3 {
-			Ok(Receipt {
+            let rlp_bloom: RlpBloom = match rlp.val_at(1) {
+                Ok(bloom) => bloom,
+                Err(_) => return Err(DecoderError::Custom("No bloom."))
+            };
+            let rlp_bloom = rlp_bloom.0.to_vec();
+            let mut rlp_bloom_limited_slice = [0; 256];
+            rlp_bloom_limited_slice.clone_from_slice(rlp_bloom.as_slice());
+            let rlp_bloom = Bloom::from(rlp_bloom_limited_slice);
+
+            let receipt = Receipt {
 				outcome: TransactionOutcome::Unknown,
 				gas_used: rlp.val_at(0)?,
-				log_bloom: rlp.val_at(1)?,
+				log_bloom: rlp_bloom,
 				logs: rlp.list_at(2)?,
-			})
+			};
+			Ok(receipt)
 		} else {
-			Ok(Receipt {
+            let rlp_bloom: RlpBloom = match rlp.val_at(2) {
+                Ok(bloom) => bloom,
+                Err(_) => return Err(DecoderError::Custom("No bloom."))
+            };
+            let rlp_bloom = rlp_bloom.0.to_vec();
+            let mut rlp_bloom_limited_slice = [0; 256];
+            rlp_bloom_limited_slice.clone_from_slice(rlp_bloom.as_slice());
+            let rlp_bloom = Bloom::from(rlp_bloom_limited_slice);
+
+			let receipt = Receipt {
 				gas_used: rlp.val_at(1)?,
-				log_bloom: rlp.val_at(2)?,
+				log_bloom: rlp_bloom,
 				logs: rlp.list_at(3)?,
 				outcome: {
 					let first = rlp.at(0)?;
@@ -109,7 +133,8 @@ impl Decodable for Receipt {
 						TransactionOutcome::StateRoot(first.as_val()?)
 					}
 				}
-			})
+			};
+            Ok(receipt)
 		}
 	}
 }
