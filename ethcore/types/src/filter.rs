@@ -17,10 +17,12 @@
 //! Blockchain filter
 
 use util::Address;
-use bigint::hash::{H256, H2048};
+use bigint::hash::{H256};
+use ethbloom::{Bloom, Input};
 use ids::BlockId;
 use log_entry::LogEntry;
 use hash::keccak;
+use rustc_hex::FromHex;
 
 /// Blockchain Filter.
 #[derive(Debug, PartialEq)]
@@ -74,15 +76,13 @@ impl Clone for Filter {
 
 impl Filter {
 	/// Returns combinations of each address and topic.
-	pub fn bloom_possibilities(&self) -> Vec<H2048> {
+	pub fn bloom_possibilities(&self) -> Vec<Bloom> {
 		let blooms = match self.address {
 			Some(ref addresses) if !addresses.is_empty() =>
 				addresses.iter().map(|ref address| {
-					let mut bloom = H2048::default();
-					bloom.shift_bloomed(&keccak(address));
-					bloom
+					Bloom::from(&(&keccak(address).hex())[..])
 				}).collect(),
-			_ => vec![H2048::default()]
+			_ => vec![Bloom::default()]
 		};
 
 		self.topics.iter().fold(blooms, |bs, topic| match *topic {
@@ -90,9 +90,11 @@ impl Filter {
 			Some(ref topics) => bs.into_iter().flat_map(|bloom| {
 				topics.into_iter().map(|topic| {
 					let mut b = bloom.clone();
-					b.shift_bloomed(&keccak(topic));
+                    let toppic_keccak = &(&keccak(topic).hex())[..]
+                        .from_hex().unwrap();
+					b.accrue(Input::Raw(toppic_keccak));
 					b
-				}).collect::<Vec<H2048>>()
+				}).collect::<Vec<Bloom>>()
 			}).collect()
 		})
 	}

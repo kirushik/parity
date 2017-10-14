@@ -21,9 +21,10 @@ use bigint::hash::H256;
 use util::Address;
 use heapsize::HeapSizeOf;
 use rlp::*;
+use ethbloom::{Bloom, BloomRef};
 
 use {BlockNumber};
-use log_entry::{LogBloom, LogEntry, LocalizedLogEntry};
+use log_entry::{LogEntry, LocalizedLogEntry};
 
 /// Transaction outcome store in the receipt.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,12 +38,12 @@ pub enum TransactionOutcome {
 }
 
 /// Information describing execution of a transaction.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Receipt {
 	/// The total gas used in the block following execution of the transaction.
 	pub gas_used: U256,
 	/// The OR-wide combination of all logs' blooms for this transaction.
-	pub log_bloom: LogBloom,
+	pub log_bloom: Bloom,
 	/// The logs stemming from this transaction.
 	pub logs: Vec<LogEntry>,
 	/// Transaction outcome.
@@ -54,7 +55,11 @@ impl Receipt {
 	pub fn new(outcome: TransactionOutcome, gas_used: U256, logs: Vec<LogEntry>) -> Receipt {
 		Receipt {
 			gas_used: gas_used,
-			log_bloom: logs.iter().fold(LogBloom::default(), |mut b, l| { b = &b | &l.bloom(); b }), //TODO: use |= operator
+			log_bloom: logs.iter().fold(Bloom::default(), |mut b, l| {
+                let br = BloomRef::from(&l.bloom());
+                b.accrue_bloom(br);
+                b
+            }),
 			logs: logs,
 			outcome: outcome,
 		}
@@ -131,7 +136,7 @@ pub struct RichReceipt {
 	/// Logs
 	pub logs: Vec<LogEntry>,
 	/// Logs bloom
-	pub log_bloom: LogBloom,
+	pub log_bloom: Bloom,
 	/// Transaction outcome.
 	pub outcome: TransactionOutcome,
 }
@@ -156,7 +161,7 @@ pub struct LocalizedReceipt {
 	/// Logs
 	pub logs: Vec<LocalizedLogEntry>,
 	/// Logs bloom
-	pub log_bloom: LogBloom,
+	pub log_bloom: Bloom,
 	/// Transaction outcome.
 	pub outcome: TransactionOutcome,
 }
