@@ -2,7 +2,7 @@ use bloomchain::group::{BloomGroup, GroupPosition};
 use ethbloom::Bloom;
 
 /// Helper structure representing bloom of the trace.
-#[derive(Clone)]
+#[derive(Clone, RlpEncodableWrapper, RlpDecodableWrapper)]
 pub struct BlockTracesBloom(Bloom);
 
 impl From<Bloom> for BlockTracesBloom {
@@ -19,7 +19,7 @@ impl Into<Bloom> for BlockTracesBloom {
 }
 
 /// Represents group of X consecutive blooms.
-#[derive(Clone)]
+#[derive(Clone, RlpEncodableWrapper, RlpDecodableWrapper)]
 pub struct BlockTracesBloomGroup {
 	blooms: Vec<BlockTracesBloom>,
 }
