@@ -18,7 +18,6 @@
 
 use util::Address;
 use bigint::hash::{H256, H2048};
-use bloomable::Bloomable;
 use ids::BlockId;
 use log_entry::LogEntry;
 use hash::keccak;
