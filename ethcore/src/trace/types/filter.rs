@@ -21,7 +21,6 @@ use bloomchain::{Filter as BloomFilter, Number};
 use ethbloom::Bloom;
 use hash::keccak;
 use util::Address;
-use basic_types::LogBloom;
 use trace::flat::FlatTrace;
 use super::trace::{Action, Res};
 
@@ -51,17 +50,17 @@ impl AddressesFilter {
 	}
 
 	/// Returns blooms of this addresses filter.
-	pub fn blooms(&self) -> Vec<LogBloom> {
+	pub fn blooms(&self) -> Vec<Bloom> {
 		match self.list.is_empty() {
-			true => vec![LogBloom::default()],
+			true => vec![Bloom::default()],
 			false => self.list.iter()
-				.map(|address| LogBloom::from_bloomed(&keccak(address)))
+				.map(|address| Bloom::from_bloomed(&keccak(address)))
 				.collect(),
 		}
 	}
 
 	/// Returns vector of blooms zipped with blooms of this addresses filter.
-	pub fn with_blooms(&self, blooms: Vec<LogBloom>) -> Vec<LogBloom> {
+	pub fn with_blooms(&self, blooms: Vec<Bloom>) -> Vec<Bloom> {
 		match self.list.is_empty() {
 			true => blooms,
 			false => blooms
@@ -102,7 +101,7 @@ impl BloomFilter for Filter {
 
 impl Filter {
 	/// Returns combinations of each address.
-	fn bloom_possibilities(&self) -> Vec<LogBloom> {
+	fn bloom_possibilities(&self) -> Vec<Bloom> {
 		self.to_address.with_blooms(self.from_address.blooms())
 	}
 

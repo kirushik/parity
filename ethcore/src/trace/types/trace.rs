@@ -23,7 +23,7 @@ use hash::keccak;
 use rlp::*;
 
 use vm::ActionParams;
-use basic_types::LogBloom;
+use basic_types::Bloom;
 use evm::CallType;
 use super::error::Error;
 
@@ -51,8 +51,8 @@ pub struct CreateResult {
 
 impl CreateResult {
 	/// Returns bloom.
-	pub fn bloom(&self) -> LogBloom {
-		LogBloom::from_bloomed(&keccak(&self.address))
+	pub fn bloom(&self) -> Bloom {
+		Bloom::from_bloomed(&keccak(&self.address))
 	}
 }
 
@@ -90,8 +90,8 @@ impl From<ActionParams> for Call {
 impl Call {
 	/// Returns call action bloom.
 	/// The bloom contains from and to addresses.
-	pub fn bloom(&self) -> LogBloom {
-		LogBloom::from_bloomed(&keccak(&self.from))
+	pub fn bloom(&self) -> Bloom {
+		Bloom::from_bloomed(&keccak(&self.from))
 			.with_bloomed(&keccak(&self.to))
 	}
 }
@@ -124,8 +124,8 @@ impl From<ActionParams> for Create {
 impl Create {
 	/// Returns bloom create action bloom.
 	/// The bloom contains only from address.
-	pub fn bloom(&self) -> LogBloom {
-		LogBloom::from_bloomed(&keccak(&self.from))
+	pub fn bloom(&self) -> Bloom {
+		Bloom::from_bloomed(&keccak(&self.from))
 	}
 }
 
@@ -173,8 +173,8 @@ pub struct Reward {
 
 impl Reward {
 	/// Return reward action bloom.
-	pub fn bloom(&self) -> LogBloom {
-		LogBloom::from_bloomed(&keccak(&self.author))
+	pub fn bloom(&self) -> Bloom {
+		Bloom::from_bloomed(&keccak(&self.author))
 	}
 }
 
@@ -214,8 +214,8 @@ pub struct Suicide {
 
 impl Suicide {
 	/// Return suicide action bloom.
-	pub fn bloom(&self) -> LogBloom {
-		LogBloom::from_bloomed(&keccak(self.address))
+	pub fn bloom(&self) -> Bloom {
+		Bloom::from_bloomed(&keccak(self.address))
 			.with_bloomed(&keccak(self.refund_address))
 	}
 }
@@ -274,7 +274,7 @@ impl Decodable for Action {
 
 impl Action {
 	/// Returns action bloom.
-	pub fn bloom(&self) -> LogBloom {
+	pub fn bloom(&self) -> Bloom {
 		match *self {
 			Action::Call(ref call) => call.bloom(),
 			Action::Create(ref create) => create.bloom(),
@@ -347,7 +347,7 @@ impl Decodable for Res {
 
 impl Res {
 	/// Returns result bloom.
-	pub fn bloom(&self) -> LogBloom {
+	pub fn bloom(&self) -> Bloom {
 		match *self {
 			Res::Create(ref create) => create.bloom(),
 			Res::Call(_) | Res::FailedCall(_) | Res::FailedCreate(_) | Res::None => Default::default(),

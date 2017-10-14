@@ -56,8 +56,7 @@ impl Receipt {
 		Receipt {
 			gas_used: gas_used,
 			log_bloom: logs.iter().fold(Bloom::default(), |mut b, l| {
-                let br = BloomRef::from(&l.bloom());
-                b.accrue_bloom(br);
+                b.accrue_bloom(BloomRef::from(&l.bloom()));
                 b
             }),
 			logs: logs,

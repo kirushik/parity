@@ -27,7 +27,7 @@ use unexpected::{Mismatch, OutOfBounds};
 use trie::TrieError;
 use io::*;
 use header::BlockNumber;
-use basic_types::LogBloom;
+use basic_types::Bloom;
 use client::Error as ClientError;
 use ipc::binary::{BinaryConvertError, BinaryConvertable};
 use snapshot::Error as SnapshotError;
@@ -169,7 +169,7 @@ pub enum BlockError {
 	/// Timestamp header field is invalid.
 	InvalidTimestamp(OutOfBounds<u64>),
 	/// Log bloom header field is invalid.
-	InvalidLogBloom(Mismatch<LogBloom>),
+	InvalidLogBloom(Mismatch<()>),
 	/// Parent hash field of header is invalid; this is an invalid error indicating a logic flaw in the codebase.
 	/// TODO: remove and favour an assert!/panic!.
 	InvalidParentHash(Mismatch<H256>),

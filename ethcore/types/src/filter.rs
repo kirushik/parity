@@ -80,7 +80,10 @@ impl Filter {
 		let blooms = match self.address {
 			Some(ref addresses) if !addresses.is_empty() =>
 				addresses.iter().map(|ref address| {
-					Bloom::from(&(&keccak(address).hex())[..])
+                    let mut bloom_data_slice = [0u8; 256];
+                    let bloom_hex = keccak(address).hex();
+                    bloom_data_slice.copy_from_slice(bloom_hex.as_str().as_bytes());
+					Bloom::from(bloom_data_slice)
 				}).collect(),
 			_ => vec![Bloom::default()]
 		};
@@ -102,7 +105,9 @@ impl Filter {
 	/// Returns true if given log entry matches filter.
 	pub fn matches(&self, log: &LogEntry) -> bool {
 		let matches = match self.address {
-			Some(ref addresses) if !addresses.is_empty() =>	addresses.iter().any(|address| &log.address == address),
+			Some(ref addresses) if !addresses.is_empty() => {
+                addresses.iter().any(|address| &log.address == address)
+            },
 			_ => true
 		};
 

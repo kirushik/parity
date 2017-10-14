@@ -31,7 +31,7 @@ use util::cache::MemoryLruCache;
 use unexpected::Mismatch;
 use rlp::{UntrustedRlp, RlpStream};
 
-use basic_types::LogBloom;
+use basic_types::Bloom;
 use client::EngineClient;
 use machine::{AuxiliaryData, Call, EthereumMachine, AuxiliaryRequest};
 use header::Header;
@@ -239,7 +239,7 @@ impl ValidatorSafeContract {
 	// produce the same bloom.
 	//
 	// The log data is an array of all new validator addresses.
-	fn expected_bloom(&self, header: &Header) -> LogBloom {
+	fn expected_bloom(&self, header: &Header) -> Bloom {
 		let topics = vec![*EVENT_NAME_HASH, *header.parent_hash()];
 
 		debug!(target: "engine", "Expected topics for header {}: {:?}",
@@ -254,7 +254,7 @@ impl ValidatorSafeContract {
 
 	// check receipts for log event. bloom should be `expected_bloom` for the
 	// header the receipts correspond to.
-	fn extract_from_event(&self, bloom: LogBloom, header: &Header, receipts: &[Receipt]) -> Option<SimpleList> {
+	fn extract_from_event(&self, bloom: Bloom, header: &Header, receipts: &[Receipt]) -> Option<SimpleList> {
 		let check_log = |log: &LogEntry| {
 			log.address == self.address &&
 				log.topics.len() == 2 &&

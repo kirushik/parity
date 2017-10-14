@@ -17,7 +17,7 @@
 use bloomchain::group as bc;
 use rlp::*;
 use heapsize::HeapSizeOf;
-use super::Bloom;
+use ethbloom::Bloom;
 
 /// Represents group of X consecutive blooms.
 #[derive(Debug, Clone)]

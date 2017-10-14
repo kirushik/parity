@@ -48,11 +48,15 @@ impl HeapSizeOf for LogEntry {
 impl LogEntry {
 	/// Calculates the bloom of this log entry.
 	pub fn bloom(&self) -> Bloom {
+        let mut bloom_data_slice = [0u8; 256];
+        let bloom_hex = keccak(&self.address).hex();
+        bloom_data_slice.copy_from_slice(bloom_hex.as_str().as_bytes());
+
 		self.topics.iter().fold(
-            Bloom::from(&(&keccak(&self.address).hex())[..]),
-            |b, t| {
+            Bloom::from(bloom_data_slice),
+            |mut b, t| {
                 b.accrue(
-                    Input::Raw(&(&keccak(&self.address).hex())[..].from_hex().unwrap())
+                    Input::Raw(&(&keccak(t).hex())[..].from_hex().unwrap())
                 );
                 b
             }
