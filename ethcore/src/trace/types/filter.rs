@@ -17,7 +17,8 @@
 //! Trace filters type definitions
 
 use std::ops::Range;
-use bloomchain::{Filter as BloomFilter, Bloom, Number};
+use bloomchain::{Filter as BloomFilter, Number};
+use ethbloom::Bloom;
 use hash::keccak;
 use util::Address;
 use bloomable::Bloomable;
