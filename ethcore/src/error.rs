@@ -169,7 +169,7 @@ pub enum BlockError {
 	/// Timestamp header field is invalid.
 	InvalidTimestamp(OutOfBounds<u64>),
 	/// Log bloom header field is invalid.
-	InvalidLogBloom(Mismatch<()>),
+	InvalidLogBloom(Mismatch<()>), // TODO: Use actuall data instead of empty touple
 	/// Parent hash field of header is invalid; this is an invalid error indicating a logic flaw in the codebase.
 	/// TODO: remove and favour an assert!/panic!.
 	InvalidParentHash(Mismatch<H256>),
