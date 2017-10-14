@@ -590,6 +590,7 @@ dependencies = [
  "common-types 0.1.0",
  "crossbeam 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethash 1.9.0",
+ "ethbloom 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethcore-bigint 0.1.3",
  "ethcore-bloom-journal 0.1.0",
  "ethcore-bytes 0.1.0",
