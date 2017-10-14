@@ -1,33 +1,25 @@
-use bloomchain::Bloom;
 use bloomchain::group::{BloomGroup, GroupPosition};
-use basic_types::LogBloom;
+use ethbloom::Bloom;
 
 /// Helper structure representing bloom of the trace.
-#[derive(Clone, RlpEncodableWrapper, RlpDecodableWrapper)]
-pub struct BlockTracesBloom(LogBloom);
-
-impl From<LogBloom> for BlockTracesBloom {
-	fn from(bloom: LogBloom) -> BlockTracesBloom {
-		BlockTracesBloom(bloom)
-	}
-}
+#[derive(Clone)]
+pub struct BlockTracesBloom(Bloom);
 
 impl From<Bloom> for BlockTracesBloom {
 	fn from(bloom: Bloom) -> BlockTracesBloom {
 		let bytes: [u8; 256] = bloom.into();
-		BlockTracesBloom(LogBloom::from(bytes))
+		BlockTracesBloom(Bloom::from(bytes))
 	}
 }
 
 impl Into<Bloom> for BlockTracesBloom {
 	fn into(self) -> Bloom {
-		let log = self.0;
-		Bloom::from(log.0)
+		self.0
 	}
 }
 
 /// Represents group of X consecutive blooms.
-#[derive(Clone, RlpEncodableWrapper, RlpDecodableWrapper)]
+#[derive(Clone)]
 pub struct BlockTracesBloomGroup {
 	blooms: Vec<BlockTracesBloom>,
 }
