@@ -72,6 +72,7 @@
 //!   ```
 
 extern crate bloomchain;
+extern crate ethbloom;
 extern crate bn;
 extern crate byteorder;
 extern crate crossbeam;
