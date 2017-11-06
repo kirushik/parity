@@ -22,10 +22,9 @@ use heapsize::HeapSizeOf;
 use util::Address;
 use bytes::Bytes;
 use bigint::hash::H256;
-pub use ethbloom::{Input, Bloom};
-use rustc_hex::FromHex;
+use ethbloom::{Input, Bloom};
 
-use {BlockNumber};
+use BlockNumber;
 use ethjson;
 
 /// A record of execution for a `LOG` operation.
@@ -48,19 +47,13 @@ impl HeapSizeOf for LogEntry {
 impl LogEntry {
 	/// Calculates the bloom of this log entry.
 	pub fn bloom(&self) -> Bloom {
-        let mut bloom_data_slice = [0u8; 256];
-        let bloom_hex = keccak(&self.address).hex();
-        bloom_data_slice.copy_from_slice(bloom_hex.as_str().as_bytes());
+		let mut bloom = Bloom::from(Input::Hash(&keccak(&self.address).0));
 
-		self.topics.iter().fold(
-            Bloom::from(bloom_data_slice),
-            |mut b, t| {
-                b.accrue(
-                    Input::Raw(&(&keccak(t).hex())[..].from_hex().unwrap())
-                );
-                b
-            }
-        )
+		for topic in &self.topics {
+			bloom.accrue(Input::Hash(&keccak(topic).0))
+		};
+
+		bloom
 	}
 }
 

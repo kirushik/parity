@@ -23,7 +23,7 @@ use itertools::Itertools;
 use bloomchain as bc;
 use heapsize::HeapSizeOf;
 use bigint::prelude::U256;
-use bigint::hash::{H256, H2048};
+use bigint::hash::H256;
 use parking_lot::{Mutex, RwLock};
 use bytes::Bytes;
 use rlp::*;
@@ -150,7 +150,7 @@ pub trait BlockProvider {
 	}
 
 	/// Returns numbers of blocks containing given bloom.
-	fn blocks_with_bloom(&self, bloom: &H2048, from_block: BlockNumber, to_block: BlockNumber) -> Vec<BlockNumber>;
+	fn blocks_with_bloom(&self, bloom: &Bloom, from_block: BlockNumber, to_block: BlockNumber) -> Vec<BlockNumber>;
 
 	/// Returns logs matching given filter.
 	fn logs<F>(&self, blocks: Vec<BlockNumber>, matches: F, limit: Option<usize>) -> Vec<LocalizedLogEntry>
@@ -355,10 +355,10 @@ impl BlockProvider for BlockChain {
 	}
 
 	/// Returns numbers of blocks containing given bloom.
-	fn blocks_with_bloom(&self, bloom: &H2048, from_block: BlockNumber, to_block: BlockNumber) -> Vec<BlockNumber> {
+	fn blocks_with_bloom(&self, bloom: &Bloom, from_block: BlockNumber, to_block: BlockNumber) -> Vec<BlockNumber> {
 		let range = from_block as bc::Number..to_block as bc::Number;
 		let chain = bc::group::BloomGroupChain::new(self.blooms_config, self);
-		chain.with_bloom(&range, &Bloom::from(bloom.clone()).into())
+		chain.with_bloom(&range, bloom)
 			.into_iter()
 			.map(|b| b as BlockNumber)
 			.collect()
@@ -1330,7 +1330,7 @@ impl BlockChain {
 					HashMap::new()
 				} else {
 					let chain = bc::group::BloomGroupChain::new(self.blooms_config, self);
-					chain.insert(info.number as bc::Number, Bloom::from(log_bloom).into())
+					chain.insert(info.number as bc::Number, Bloom::from(log_bloom.0).into())
 				}
 			},
 			BlockLocation::BranchBecomingCanonChain(ref data) => {
@@ -1340,12 +1340,12 @@ impl BlockChain {
 
 				let mut blooms: Vec<bc::Bloom> = data.enacted.iter()
 					.map(|hash| self.block_header_data(hash).unwrap())
-					.map(|h| h.log_bloom())
+					.map(|h| h.log_bloom().0)
 					.map(Bloom::from)
 					.map(Into::into)
 					.collect();
 
-				blooms.push(Bloom::from(header.log_bloom()).into());
+				blooms.push(Bloom::from(header.log_bloom().0));
 
 				let chain = bc::group::BloomGroupChain::new(self.blooms_config, self);
 				chain.replace(&range, blooms)
@@ -2156,46 +2156,46 @@ mod tests {
 		let db = new_db();
 		let bc = new_chain(&genesis, db.clone());
 
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
 		assert_eq!(blocks_b1, Vec::<BlockNumber>::new());
 		assert_eq!(blocks_b2, Vec::<BlockNumber>::new());
 
 		insert_block(&db, &bc, &b1, vec![]);
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
 		assert_eq!(blocks_b1, vec![1]);
 		assert_eq!(blocks_b2, Vec::<BlockNumber>::new());
 
 		insert_block(&db, &bc, &b2, vec![]);
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
 		assert_eq!(blocks_b1, vec![1]);
 		assert_eq!(blocks_b2, vec![2]);
 
 		// hasn't been forked yet
 		insert_block(&db, &bc, &b1a, vec![]);
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
-		let blocks_ba = bc.blocks_with_bloom(&bloom_ba, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
+		let blocks_ba = bc.blocks_with_bloom(&bloom_ba.0.into(), 0, 5);
 		assert_eq!(blocks_b1, vec![1]);
 		assert_eq!(blocks_b2, vec![2]);
 		assert_eq!(blocks_ba, Vec::<BlockNumber>::new());
 
 		// fork has happend
 		insert_block(&db, &bc, &b2a, vec![]);
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
-		let blocks_ba = bc.blocks_with_bloom(&bloom_ba, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
+		let blocks_ba = bc.blocks_with_bloom(&bloom_ba.0.into(), 0, 5);
 		assert_eq!(blocks_b1, Vec::<BlockNumber>::new());
 		assert_eq!(blocks_b2, Vec::<BlockNumber>::new());
 		assert_eq!(blocks_ba, vec![1, 2]);
 
 		// fork back
 		insert_block(&db, &bc, &b3, vec![]);
-		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1, 0, 5);
-		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2, 0, 5);
-		let blocks_ba = bc.blocks_with_bloom(&bloom_ba, 0, 5);
+		let blocks_b1 = bc.blocks_with_bloom(&bloom_b1.0.into(), 0, 5);
+		let blocks_b2 = bc.blocks_with_bloom(&bloom_b2.0.into(), 0, 5);
+		let blocks_ba = bc.blocks_with_bloom(&bloom_ba.0.into(), 0, 5);
 		assert_eq!(blocks_b1, vec![1]);
 		assert_eq!(blocks_b2, vec![2]);
 		assert_eq!(blocks_ba, vec![3]);

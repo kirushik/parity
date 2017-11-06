@@ -271,7 +271,7 @@ impl ValidatorSafeContract {
 		// the contract should only increment the nonce once.
 		let mut decoded_events = receipts.iter()
 			.rev()
-			.filter(|r| &bloom & &r.log_bloom == bloom)
+			.filter(|r| bloom.contains_bloom(&r.log_bloom))
 			.flat_map(|r| r.logs.iter())
 			.filter(move |l| check_log(l))
 			.filter_map(|log| {
@@ -355,7 +355,7 @@ impl ValidatorSet for ValidatorSafeContract {
 		let bloom = self.expected_bloom(header);
 		let header_bloom = header.log_bloom();
 
-		if &bloom & header_bloom != bloom { return ::engines::EpochChange::No }
+		if !bloom.contains_bloom(header_bloom) { return ::engines::EpochChange::No }
 
 		trace!(target: "engine", "detected epoch change event bloom");
 

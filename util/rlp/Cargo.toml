@@ -8,6 +8,7 @@ authors = ["Parity Technologies <admin@parity.io>"]
 
 [dependencies]
 elastic-array = "0.9"
+ethbloom = "0.2"
 ethcore-bigint = { path = "../bigint" }
 lazy_static = "0.2"
 rustc-hex = "1.0"

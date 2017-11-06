@@ -1021,7 +1021,7 @@ impl MinerService for Miner {
 								}
 							},
 							logs: receipt.logs.clone(),
-							log_bloom: receipt.log_bloom,
+							log_bloom: receipt.log_bloom.clone(),
 							outcome: receipt.outcome.clone(),
 						}
 					})

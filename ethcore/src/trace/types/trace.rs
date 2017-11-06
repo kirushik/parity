@@ -23,7 +23,7 @@ use hash::keccak;
 use rlp::*;
 
 use vm::ActionParams;
-use basic_types::Bloom;
+use ethbloom::{Bloom, Input};
 use evm::CallType;
 use super::error::Error;
 
@@ -52,7 +52,7 @@ pub struct CreateResult {
 impl CreateResult {
 	/// Returns bloom.
 	pub fn bloom(&self) -> Bloom {
-		Bloom::from_bloomed(&keccak(&self.address))
+		Bloom::from(Input::Hash(&keccak(&self.address).0))
 	}
 }
 
@@ -91,8 +91,9 @@ impl Call {
 	/// Returns call action bloom.
 	/// The bloom contains from and to addresses.
 	pub fn bloom(&self) -> Bloom {
-		Bloom::from_bloomed(&keccak(&self.from))
-			.with_bloomed(&keccak(&self.to))
+		let mut b = Bloom::from(Input::Hash(&keccak(&self.from).0));
+		b.accrue(Input::Hash(&keccak(&self.to).0));
+		b
 	}
 }
 
@@ -125,7 +126,7 @@ impl Create {
 	/// Returns bloom create action bloom.
 	/// The bloom contains only from address.
 	pub fn bloom(&self) -> Bloom {
-		Bloom::from_bloomed(&keccak(&self.from))
+		Bloom::from(Input::Hash(&keccak(&self.from).0))
 	}
 }
 
@@ -174,7 +175,7 @@ pub struct Reward {
 impl Reward {
 	/// Return reward action bloom.
 	pub fn bloom(&self) -> Bloom {
-		Bloom::from_bloomed(&keccak(&self.author))
+		Bloom::from(Input::Hash(&keccak(&self.author).0))
 	}
 }
 
@@ -215,8 +216,9 @@ pub struct Suicide {
 impl Suicide {
 	/// Return suicide action bloom.
 	pub fn bloom(&self) -> Bloom {
-		Bloom::from_bloomed(&keccak(self.address))
-			.with_bloomed(&keccak(self.refund_address))
+		let mut b = Bloom::from(Input::Hash(&keccak(self.address).0));
+		b.accrue(Input::Hash(&keccak(self.refund_address).0));
+		b
 	}
 }
 

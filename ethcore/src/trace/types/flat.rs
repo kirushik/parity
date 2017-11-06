@@ -42,7 +42,9 @@ pub struct FlatTrace {
 impl FlatTrace {
 	/// Returns bloom of the trace.
 	pub fn bloom(&self) -> Bloom {
-		self.action.bloom() | self.result.bloom()
+		let mut res = self.action.bloom().clone();
+		res.accrue_bloom(&self.result.bloom());
+		res
 	}
 }
 
@@ -95,7 +97,11 @@ impl HeapSizeOf for FlatTransactionTraces {
 impl FlatTransactionTraces {
 	/// Returns bloom of all traces in the collection.
 	pub fn bloom(&self) -> Bloom {
-		self.0.iter().fold(Default::default(), | bloom, trace | bloom | trace.bloom())
+		self.0.iter().fold(Default::default(), | bloom, trace | {
+			let mut res = bloom.clone();
+			res.accrue_bloom(&trace.bloom());
+			res
+		})
 	}
 }
 
@@ -124,7 +130,11 @@ impl From<Vec<FlatTransactionTraces>> for FlatBlockTraces {
 impl FlatBlockTraces {
 	/// Returns bloom of all traces in the block.
 	pub fn bloom(&self) -> Bloom {
-		self.0.iter().fold(Default::default(), | bloom, tx_traces | bloom | tx_traces.bloom())
+		self.0.iter().fold(Default::default(), | bloom, tx_traces | {
+			let mut res = bloom.clone();
+			res.accrue_bloom(&tx_traces.bloom());
+			res
+		})
 	}
 }
 

@@ -17,8 +17,7 @@
 //! Trace filters type definitions
 
 use std::ops::Range;
-use bloomchain::{Filter as BloomFilter, Number};
-use ethbloom::Bloom;
+use bloomchain::{Bloom, Input, Filter as BloomFilter, Number};
 use hash::keccak;
 use util::Address;
 use trace::flat::FlatTrace;
@@ -54,7 +53,7 @@ impl AddressesFilter {
 		match self.list.is_empty() {
 			true => vec![Bloom::default()],
 			false => self.list.iter()
-				.map(|address| Bloom::from_bloomed(&keccak(address)))
+				.map(|address| Input::Hash(&keccak(address).0).into())
 				.collect(),
 		}
 	}
@@ -65,9 +64,13 @@ impl AddressesFilter {
 			true => blooms,
 			false => blooms
 				.into_iter()
-				.flat_map(|bloom| self.list.iter()
-					.map(|address| bloom.with_bloomed(&keccak(address)))
-					.collect::<Vec<_>>())
+				.flat_map(|ref bloom| self.list.iter()
+						.map(|address| {
+							let mut bloom = bloom.clone();
+							bloom.accrue(Input::Hash(&keccak(address).0));
+							bloom
+						}).collect::<Vec<_>>() // Allocation is needed, otherwise `bloom` reference won't live long enough
+				)
 				.collect(),
 		}
 	}
@@ -87,11 +90,9 @@ pub struct Filter {
 }
 
 impl BloomFilter for Filter {
+	/// Returns combinations of each address.
 	fn bloom_possibilities(&self) -> Vec<Bloom> {
-		self.bloom_possibilities()
-			.into_iter()
-			.map(|b| Bloom::from(b.0))
-			.collect()
+		self.to_address.with_blooms(self.from_address.blooms())
 	}
 
 	fn range(&self) -> Range<Number> {
@@ -100,11 +101,6 @@ impl BloomFilter for Filter {
 }
 
 impl Filter {
-	/// Returns combinations of each address.
-	fn bloom_possibilities(&self) -> Vec<Bloom> {
-		self.to_address.with_blooms(self.from_address.blooms())
-	}
-
 	/// Returns true if given trace matches the filter.
 	pub fn matches(&self, trace: &FlatTrace) -> bool {
 		match trace.action {
@@ -143,6 +139,7 @@ mod tests {
 	use trace::flat::FlatTrace;
 	use trace::{Filter, AddressesFilter, TraceError, RewardType};
 	use evm::CallType;
+	use bloomchain::{Bloom, Filter as BloomFilter, Input};
 
 	#[test]
 	fn empty_trace_filter_bloom_possibilities() {
@@ -153,7 +150,7 @@ mod tests {
 		};
 
 		let blooms = filter.bloom_possibilities();
-		assert_eq!(blooms, vec![Default::default()]);
+		assert_eq!(blooms, vec![Bloom::default()]);
 	}
 
 	#[test]
@@ -167,9 +164,9 @@ mod tests {
 		let blooms = filter.bloom_possibilities();
 		assert_eq!(blooms.len(), 1);
 
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(1))));
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(2))));
-		assert!(!blooms[0].contains_bloomed(&keccak(Address::from(3))));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(2)).0)));
+		assert!(!blooms[0].contains(Input::Hash(&keccak(Address::from(3)).0)));
 	}
 
 	#[test]
@@ -183,8 +180,8 @@ mod tests {
 		let blooms = filter.bloom_possibilities();
 		assert_eq!(blooms.len(), 1);
 
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(1))));
-		assert!(!blooms[0].contains_bloomed(&keccak(Address::from(2))));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(!blooms[0].contains(Input::Hash(&keccak(Address::from(2)).0)));
 	}
 
 	#[test]
@@ -198,8 +195,8 @@ mod tests {
 		let blooms = filter.bloom_possibilities();
 		assert_eq!(blooms.len(), 1);
 
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(1))));
-		assert!(!blooms[0].contains_bloomed(&keccak(Address::from(2))));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(!blooms[0].contains(Input::Hash(&keccak(Address::from(2)).0)));
 	}
 
 	#[test]
@@ -213,25 +210,25 @@ mod tests {
 		let blooms = filter.bloom_possibilities();
 		assert_eq!(blooms.len(), 4);
 
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(1))));
-		assert!(blooms[0].contains_bloomed(&keccak(Address::from(2))));
-		assert!(!blooms[0].contains_bloomed(&keccak(Address::from(3))));
-		assert!(!blooms[0].contains_bloomed(&keccak(Address::from(4))));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(blooms[0].contains(Input::Hash(&keccak(Address::from(2)).0)));
+		assert!(!blooms[0].contains(Input::Hash(&keccak(Address::from(3)).0)));
+		assert!(!blooms[0].contains(Input::Hash(&keccak(Address::from(4)).0)));
 
-		assert!(blooms[1].contains_bloomed(&keccak(Address::from(1))));
-		assert!(blooms[1].contains_bloomed(&keccak(Address::from(4))));
-		assert!(!blooms[1].contains_bloomed(&keccak(Address::from(2))));
-		assert!(!blooms[1].contains_bloomed(&keccak(Address::from(3))));
+		assert!(blooms[1].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(blooms[1].contains(Input::Hash(&keccak(Address::from(4)).0)));
+		assert!(!blooms[1].contains(Input::Hash(&keccak(Address::from(2)).0)));
+		assert!(!blooms[1].contains(Input::Hash(&keccak(Address::from(3)).0)));
 
-		assert!(blooms[2].contains_bloomed(&keccak(Address::from(2))));
-		assert!(blooms[2].contains_bloomed(&keccak(Address::from(3))));
-		assert!(!blooms[2].contains_bloomed(&keccak(Address::from(1))));
-		assert!(!blooms[2].contains_bloomed(&keccak(Address::from(4))));
+		assert!(blooms[2].contains(Input::Hash(&keccak(Address::from(2)).0)));
+		assert!(blooms[2].contains(Input::Hash(&keccak(Address::from(3)).0)));
+		assert!(!blooms[2].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(!blooms[2].contains(Input::Hash(&keccak(Address::from(4)).0)));
 
-		assert!(blooms[3].contains_bloomed(&keccak(Address::from(3))));
-		assert!(blooms[3].contains_bloomed(&keccak(Address::from(4))));
-		assert!(!blooms[3].contains_bloomed(&keccak(Address::from(1))));
-		assert!(!blooms[3].contains_bloomed(&keccak(Address::from(2))));
+		assert!(blooms[3].contains(Input::Hash(&keccak(Address::from(3)).0)));
+		assert!(blooms[3].contains(Input::Hash(&keccak(Address::from(4)).0)));
+		assert!(!blooms[3].contains(Input::Hash(&keccak(Address::from(1)).0)));
+		assert!(!blooms[3].contains(Input::Hash(&keccak(Address::from(2)).0)));
 	}
 
 	#[test]

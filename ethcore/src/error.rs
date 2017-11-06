@@ -19,7 +19,7 @@
 use std::fmt;
 use kvdb;
 use bigint::prelude::U256;
-use bigint::hash::H256;
+use bigint::hash::{H256, H2048};
 use util::*;
 use util_error::UtilError;
 use snappy::InvalidInput;
@@ -27,7 +27,6 @@ use unexpected::{Mismatch, OutOfBounds};
 use trie::TrieError;
 use io::*;
 use header::BlockNumber;
-use basic_types::Bloom;
 use client::Error as ClientError;
 use ipc::binary::{BinaryConvertError, BinaryConvertable};
 use snapshot::Error as SnapshotError;
@@ -169,7 +168,7 @@ pub enum BlockError {
 	/// Timestamp header field is invalid.
 	InvalidTimestamp(OutOfBounds<u64>),
 	/// Log bloom header field is invalid.
-	InvalidLogBloom(Mismatch<()>), // TODO: Use actuall data instead of empty touple
+	InvalidLogBloom(Mismatch<H2048>),
 	/// Parent hash field of header is invalid; this is an invalid error indicating a logic flaw in the codebase.
 	/// TODO: remove and favour an assert!/panic!.
 	InvalidParentHash(Mismatch<H256>),
@@ -213,7 +212,7 @@ impl fmt::Display for BlockError {
 			InvalidGasLimit(ref oob) => format!("Invalid gas limit: {}", oob),
 			InvalidReceiptsRoot(ref mis) => format!("Invalid receipts trie root in header: {}", mis),
 			InvalidTimestamp(ref oob) => format!("Invalid timestamp in header: {}", oob),
-			InvalidLogBloom(ref oob) => format!("Invalid log bloom in header: {}", oob),
+			InvalidLogBloom(ref mis) => format!("Invalid log bloom in header: {}", mis),
 			InvalidParentHash(ref mis) => format!("Invalid parent hash: {}", mis),
 			InvalidNumber(ref mis) => format!("Invalid number in header: {}", mis),
 			RidiculousNumber(ref oob) => format!("Implausible block number. {}", oob),

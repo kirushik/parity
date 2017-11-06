@@ -40,6 +40,7 @@
 
 extern crate byteorder;
 extern crate ethcore_bigint as bigint;
+extern crate ethbloom;
 extern crate elastic_array;
 extern crate rustc_hex;
 

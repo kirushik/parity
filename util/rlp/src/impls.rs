@@ -12,6 +12,7 @@ use bigint::prelude::{U128, U256, H64, H128, H160, H256, H512, H520, H2048};
 use traits::{Encodable, Decodable};
 use stream::RlpStream;
 use {UntrustedRlp, DecoderError};
+use ethbloom::Bloom;
 
 pub fn decode_usize(bytes: &[u8]) -> Result<usize, DecoderError> {
 	match bytes.len() {
@@ -283,3 +284,22 @@ impl Decodable for String {
 		})
 	}
 }
+
+impl Encodable for Bloom {
+	fn rlp_append(&self, s: &mut RlpStream) {
+		s.encoder().encode_value(self.data());
+	}
+}
+impl Decodable for Bloom {
+	fn decode(rlp: &UntrustedRlp) -> Result<Self, DecoderError> {
+		rlp.decoder().decode_value(|bytes| match bytes.len().cmp(&256) {
+			cmp::Ordering::Less => Err(DecoderError::RlpIsTooShort),
+			cmp::Ordering::Greater => Err(DecoderError::RlpIsTooBig),
+			cmp::Ordering::Equal => {
+				let mut t = [0u8; 256];
+				t.copy_from_slice(bytes);
+				Ok(t.into())
+			}
+		})
+	}
+ }

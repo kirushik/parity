@@ -52,7 +52,7 @@ impl Forkable for Block {
 
 impl WithBloom for Block {
 	fn with_bloom(mut self, bloom: H2048) -> Self where Self: Sized {
-		self.header.set_log_bloom(bloom);
+		self.header.set_log_bloom(bloom.0.into());
 		self
 	}
 }

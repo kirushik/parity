@@ -225,7 +225,7 @@ pub fn verify_block_final(expected: &Header, got: &Header) -> Result<(), Error> 
 		return Err(From::from(BlockError::InvalidGasUsed(Mismatch { expected: expected.gas_used().clone(), found: got.gas_used().clone() })))
 	}
 	if expected.log_bloom() != got.log_bloom() {
-		return Err(From::from(BlockError::InvalidLogBloom(Mismatch { expected: expected.log_bloom().clone(), found: got.log_bloom().clone() })))
+		return Err(From::from(BlockError::InvalidLogBloom(Mismatch { expected: (*expected.log_bloom().data()).into(), found: (*got.log_bloom().data()).into() })))
 	}
 	if expected.state_root() != got.state_root() {
 		return Err(From::from(BlockError::InvalidStateRoot(Mismatch { expected: expected.state_root().clone(), found: got.state_root().clone() })))
@@ -322,7 +322,8 @@ mod tests {
 	use std::collections::{BTreeMap, HashMap};
 	use hash::keccak;
 	use bigint::prelude::U256;
-	use bigint::hash::{H256, H2048};
+	use bigint::hash::H256;
+	use basic_types::Bloom;
 	use triehash::ordered_trie_root;
 	use unexpected::{Mismatch, OutOfBounds};
 	use bytes::Bytes;
@@ -445,7 +446,7 @@ mod tests {
 			unimplemented!()
 		}
 
-		fn blocks_with_bloom(&self, _bloom: &H2048, _from_block: BlockNumber, _to_block: BlockNumber) -> Vec<BlockNumber> {
+		fn blocks_with_bloom(&self, _bloom: &Bloom, _from_block: BlockNumber, _to_block: BlockNumber) -> Vec<BlockNumber> {
 			unimplemented!()
 		}
 

@@ -19,9 +19,6 @@
 /// Type for a 2048-bit log-bloom, as used by our blocks.
 pub use ethbloom::Bloom;
 
-/// Constant 2048-bit datum for 0. Often used as a default.
-pub static ZERO_LOGBLOOM: Bloom = Bloom::from([0x00; 256]);
-
 #[cfg_attr(feature="dev", allow(enum_variant_names))]
 /// Semantic boolean for when a seal/signature is included.
 pub enum Seal {

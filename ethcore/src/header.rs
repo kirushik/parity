@@ -24,7 +24,7 @@ use bigint::prelude::U256;
 use bigint::hash::H256;
 use util::*;
 use bytes::Bytes;
-use basic_types::{Bloom, ZERO_LOGBLOOM};
+use ethbloom::Bloom;
 use time::get_time;
 use rlp::*;
 
@@ -111,7 +111,7 @@ impl Default for Header {
 
 			state_root: KECCAK_NULL_RLP,
 			receipts_root: KECCAK_NULL_RLP,
-			log_bloom: ZERO_LOGBLOOM.clone(),
+			log_bloom: Bloom::default(),
 			gas_used: U256::default(),
 			gas_limit: U256::default(),
 
