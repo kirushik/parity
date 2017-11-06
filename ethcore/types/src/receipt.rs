@@ -38,7 +38,7 @@ pub enum TransactionOutcome {
 }
 
 /// Information describing execution of a transaction.
-#[derive(Debug, Clone, PartialEq)] // NOTE: removed `Eq` trait from this derive
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Receipt {
 	/// The total gas used in the block following execution of the transaction.
 	pub gas_used: U256,

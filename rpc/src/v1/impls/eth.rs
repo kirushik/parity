@@ -217,7 +217,7 @@ impl<C, SN: ?Sized, S: ?Sized, M, EM> EthClient<C, SN, S, M, EM> where
 				number: Some(uncle.number().into()),
 				gas_used: uncle.gas_used().clone().into(),
 				gas_limit: uncle.gas_limit().clone().into(),
-				logs_bloom: uncle.log_bloom().clone().into(),
+				logs_bloom: (*uncle.log_bloom().data()).into(),
 				timestamp: uncle.timestamp().into(),
 				difficulty: uncle.difficulty().clone().into(),
 				total_difficulty: Some((uncle.difficulty().clone() + parent_difficulty).into()),

@@ -43,6 +43,7 @@ extern crate jsonrpc_ipc_server as ipc;
 extern crate jsonrpc_pubsub;
 
 extern crate ethash;
+extern crate ethbloom;
 extern crate ethcore;
 extern crate ethcore_bigint as bigint;
 extern crate ethcore_bytes as bytes;

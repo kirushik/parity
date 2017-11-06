@@ -83,7 +83,7 @@ impl From<LocalizedReceipt> for Receipt {
 			logs: r.logs.into_iter().map(Into::into).collect(),
 			status_code: Self::outcome_to_status_code(&r.outcome),
 			state_root: Self::outcome_to_state_root(r.outcome),
-			logs_bloom: r.log_bloom.into(),
+			logs_bloom: (*r.log_bloom.data()).into(),
 		}
 	}
 }
@@ -101,7 +101,7 @@ impl From<RichReceipt> for Receipt {
 			logs: r.logs.into_iter().map(Into::into).collect(),
 			status_code: Self::outcome_to_status_code(&r.outcome),
 			state_root: Self::outcome_to_state_root(r.outcome),
-			logs_bloom: r.log_bloom.into(),
+			logs_bloom: (*r.log_bloom.data()).into(),
 		}
 	}
 }
@@ -119,7 +119,7 @@ impl From<EthReceipt> for Receipt {
 			logs: r.logs.into_iter().map(Into::into).collect(),
 			status_code: Self::outcome_to_status_code(&r.outcome),
 			state_root: Self::outcome_to_state_root(r.outcome),
-			logs_bloom: r.log_bloom.into(),
+			logs_bloom: (*r.log_bloom.data()).into(),
 		}
 	}
 }

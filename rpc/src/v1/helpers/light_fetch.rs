@@ -37,6 +37,7 @@ use light::cht;
 use light::on_demand::{request, OnDemand, HeaderRef, Request as OnDemandRequest, Response as OnDemandResponse};
 use light::request::Field;
 
+use ethbloom::Bloom;
 use ethsync::LightSync;
 use bigint::prelude::U256;
 use hash::H256;
@@ -333,8 +334,8 @@ impl LightFetch {
 				.take_while(|ref hdr| BlockId::Number(hdr.number()) != filter.from_block)
 				.take_while(|ref hdr| BlockId::Hash(hdr.hash()) != filter.from_block)
 				.filter(|ref hdr| {
-					let hdr_bloom = hdr.log_bloom();
-					bit_combos.iter().find(|&bloom| hdr_bloom & *bloom == *bloom).is_some()
+					let hdr_bloom: Bloom = hdr.log_bloom().0.into();
+					bit_combos.iter().any(|ref bloom| hdr_bloom.contains_bloom(*bloom))
 				})
 				.map(|hdr| (hdr.number(), request::BlockReceipts(hdr.into())))
 				.map(|(num, req)| self.on_demand.request(ctx, req).expect(NO_INVALID_BACK_REFS).map(move |x| (num, x)))

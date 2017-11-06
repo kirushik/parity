@@ -386,7 +386,7 @@ impl Parity for ParityClient {
 					number: Some(header.number().into()),
 					gas_used: header.gas_used().clone().into(),
 					gas_limit: header.gas_limit().clone().into(),
-					logs_bloom: header.log_bloom().clone().into(),
+					logs_bloom: (*header.log_bloom().data()).into(),
 					timestamp: header.timestamp().into(),
 					difficulty: header.difficulty().clone().into(),
 					seal_fields: header.seal().iter().cloned().map(Into::into).collect(),

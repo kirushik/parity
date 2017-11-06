@@ -28,9 +28,6 @@ extern crate rustc_hex;
 extern crate hash;
 extern crate heapsize;
 
-#[cfg(test)]
-extern crate rustc_hex;
-
 pub mod account_diff;
 pub mod basic_account;
 pub mod block_status;
